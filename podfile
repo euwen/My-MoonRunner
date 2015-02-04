@@ -1,0 +1,4 @@
+platform :ios, '7.0' #system
+#pod 'AMap3DMap' #3D map SDK
+pod 'AMap2DMap' #2D map SDK
+pod 'AMapSearch' #search SDK

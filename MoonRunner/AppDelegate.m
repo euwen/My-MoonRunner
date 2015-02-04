@@ -7,17 +7,30 @@
 //
 
 #import "AppDelegate.h"
-#import "DetailViewController.h"
+#import "HomeViewController.h"
+#import <CoreData/CoreData.h>
 
 @interface AppDelegate ()
+
+@property(nonatomic, strong)NSManagedObjectContext *managedObjectContext;
+@property(nonatomic, strong)NSManagedObjectModel *managedObjectModel;
+@property(nonatomic, strong)NSPersistentStoreCoordinator *persistentStoreCoordinator;
 
 @end
 
 @implementation AppDelegate
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    UINavigationController *navigationController = (UINavigationController *)self.window.rootViewController;
+    
+    //change the system style according to the navigation bar style
+    navigationController.navigationBar.barStyle = UIBarStyleBlack;
+    
+    HomeViewController *controller = (HomeViewController *)navigationController.topViewController;
+    controller.managedObjectContext = self.managedObjectContext;
+    
+    
     return YES;
 }
 
@@ -40,7 +53,99 @@
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    // Saves changes in the application's managed object context before the application terminates.
+    [self saveContext];
+}
+
+- (void)saveContext{
+    NSError *error = nil;
+    NSManagedObjectContext *managedObjectContext = self.managedObjectContext;
+    if (managedObjectContext != nil) {
+        if ([managedObjectContext hasChanges] && ![managedObjectContext save:&error]) {
+            // Replace this implementation with code to handle the error appropriately.
+            // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+            NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
+            abort();
+        }
+    }
+}
+
+
+#pragma mark core data
+
+-(NSManagedObjectModel*)managedObjectModel{
+    
+    
+    if (_managedObjectModel == nil) {
+        NSString *modelPath = [[NSBundle mainBundle]pathForResource:@"DataModel" ofType:@"momd"];
+        NSURL *modelURL = [NSURL fileURLWithPath:modelPath];
+        
+        _managedObjectModel = [[NSManagedObjectModel alloc]initWithContentsOfURL:modelURL];
+        
+    }
+    
+    return _managedObjectModel;
+}
+
+-(NSString*)documentsDirectory{
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    
+    NSString *documentsDirectory = [paths firstObject];
+    
+    return documentsDirectory;
+    
+}
+
+-(NSString*)dataStorePath{
+    NSString *_dataPath = [[self documentsDirectory]stringByAppendingPathComponent:@"DataStore.sqlite"];
+    
+    //NSLog(@"data path: %@", _dataPath);
+    
+    return _dataPath;
+    
+}
+
+-(NSPersistentStoreCoordinator*)persistentStoreCoordinator{
+    
+    if (_persistentStoreCoordinator==nil) {
+        NSURL *storeURL = [NSURL fileURLWithPath:[self dataStorePath]];
+        
+        _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc]initWithManagedObjectModel:self.managedObjectModel];
+        
+        NSError *error;
+        
+        if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error]) {
+            NSLog(@"Error adding persistent store %@, %@", error, [error userInfo]);
+            
+            NSLog(@"path: %@", storeURL);
+            
+            abort();
+        }
+    }
+    
+    return _persistentStoreCoordinator;
+    
+}
+
+-(NSManagedObjectContext*)managedObjectContext{
+    if (_managedObjectContext == nil) {
+        NSPersistentStoreCoordinator *coordinator = self.persistentStoreCoordinator;
+        
+        if (coordinator != nil) {
+            _managedObjectContext = [[NSManagedObjectContext alloc]init];
+            [_managedObjectContext setPersistentStoreCoordinator:coordinator];
+        }
+    }
+    
+    return _managedObjectContext;
+}
+
+#pragma mark - Application's Documents directory
+
+// Returns the URL to the application's Documents directory.
+- (NSURL *)applicationDocumentsDirectory{
+    return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 }
 
 @end
