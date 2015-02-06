@@ -153,7 +153,7 @@ static NSString * const detailSegueName = @"RunDetails";
     
     _mapView.userTrackingMode = MAUserTrackingModeFollow;
     
-    _mapView.desiredAccuracy = kCLLocationAccuracyHundredMeters;
+    _mapView.desiredAccuracy = kCLLocationAccuracyBest;
     
     _mapView.distanceFilter = 100;
     
@@ -170,7 +170,7 @@ static NSString * const detailSegueName = @"RunDetails";
     NSMutableArray *positions = [[NSMutableArray alloc] init];
     
     if (_deadReckoning.positionData.count > 0) {
-        for (int i; i<_deadReckoning.positionData.count; i++) {
+        for (int i=0; i<_deadReckoning.positionData.count; i++) {
             CGPoint point = [[_deadReckoning.positionData objectAtIndex:i] CGPointValue];
             
             MAMapPoint mapPoint;

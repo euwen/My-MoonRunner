@@ -7,26 +7,48 @@
 //
 
 #import "DeadReckoning.h"
+#import <stdlib.h>
+
 
 #define kRadToDeg   57.2957795
 
-#define stepLen 0.60 //unit: meters
+#define stepLen 0.50 //unit: meters
 
 #define alphaTracker 0.23 //smoothing factor, cutoff frequency 3Hz
 
 #define stepDetectThreshold 0.08 //step detection threshold
 
-#define macroAxis = 6378137 //the radius of equator
+#define macroAxis  6378137 //the radius of equator
 
-#define microAxis = 6356752 //the half distance between north and sourth poles
+#define microAxis  6356752 //the half distance between north and sourth poles
+
+#define particleNum 100 //number of particles in particle filter
+
+#define distanceThreshold 10 //unit: meters
+
+#define resampleRatio 0.8 //resample ratio for particle filter
 
 
 @implementation DeadReckoning{
 
     double _lastDirection;
-    double _lastStep;
+    
+    int _lastStep;
+    
+    int _currentStep;
     
     double _lastGravity;
+    
+    CGPoint _startPointBuffer;
+    
+    double _stepLens[particleNum];
+    
+    double _directions[particleNum];
+    
+    CGPoint _positions[particleNum];
+    
+    double _particleWeight[particleNum];
+    
 }
 
 -(void)startSensorReading{
@@ -35,6 +57,15 @@
     _lastStep = 1;
     _lastDirection = 0;
     _lastGravity = 0;
+    _startPointBuffer = CGPointZero;
+    
+    for (int i=0; i<particleNum; i++) {
+        
+        _stepLens[i] = stepLen + (arc4random()%100)/10;
+        
+        _particleWeight[i] = 1.0/particleNum;
+        
+    }
     
     _positionData = [[NSMutableArray alloc] init];
     
@@ -123,7 +154,6 @@
     _lastDirection = _currentDirection;
 }
 
-
 -(void)outputMotionData:(CMDeviceMotion *)motion{
     
     _motionData = motion;
@@ -155,38 +185,40 @@
     double _gravity = (gravityData.x*userAccData.x + gravityData.y*userAccData.y + gravityData.z*userAccData.z);
     
     if (_lastGravity != 0) {
-        [self smoothing:_gravity lastData:_lastGravity];
+        _gravity = [self smoothing:_gravity lastData:_lastGravity];
     }
     _lastGravity = _gravity;
     
     if (_gravity >= stepDetectThreshold) {
-        _gravity = 1;
+        _currentStep = 1;
         
     } else {
-        _gravity = 0;
+        _currentStep = 0;
         
     }
     
-    if ((_gravity - _lastStep) == 1) {
+    if ((_currentStep - _lastStep) == 1) {
         _stepCount++;
         
         //estimate the next step
-        
-        CGPoint endPoint;
-        
-        if ( !CGPointEqualToPoint(_startPoint, CGPointZero) ) {
+        if (!CGPointEqualToPoint(_startPoint, CGPointZero)) {
             
-            endPoint.x = _startPoint.x + stepLen/_mapMeterPerPixel*cos(directionData);
-            endPoint.y = _startPoint.y + stepLen/_mapMeterPerPixel*sin(directionData);
-            
-            [_positionData addObject:[NSValue valueWithCGPoint:endPoint]];
-            
-            _startPoint = endPoint;
+            if ( CGPointEqualToPoint(_startPoint, _startPointBuffer)) {//no gps update
+                
+                [self locationParticleFilter:NO directionData:directionData];
+                
+            }else{//with gps update
+                
+                [self locationParticleFilter:YES directionData:directionData];
+                
+                _startPointBuffer = _startPoint;
+                
+            }
         }
         
     }
     
-    _lastStep = _gravity;
+    _lastStep = _currentStep;
     
     return _stepCount;
 }
@@ -199,6 +231,170 @@
     
     return smoothedData;
     
+}
+
+-(void)locationParticleFilter:(BOOL)locationUpdated directionData:(double)directionData{
+
+    if (locationUpdated) {
+        
+        double weightBuffer = 0;
+        for (int i=0; i<particleNum; i++) {
+            
+            double distance = sqrt(pow(_positions[i].x - _startPoint.x, 2)+pow(_positions[i].y - _startPoint.y, 2));
+            
+            if (distance > distanceThreshold) {
+                _particleWeight[i] = 0;
+                
+            } else {
+                weightBuffer += _particleWeight[i];
+                
+            }
+        }
+        
+        if (weightBuffer == 0) {// all the particles should be resampled
+            CGPoint newPoint = CGPointZero;
+            
+            for (int i=0; i<particleNum; i++) {
+                
+                //step length, random, 10 meters
+                _stepLens[i] = stepLen + (arc4random()%100)/10;
+                
+                _particleWeight[i] = 1.0/particleNum;
+                
+                //direction, random, 7 degree (uniform first)
+//                _directions[i] = directionData + (arc4random()%7)/kRadToDeg;
+                _directions[i] = directionData;
+                
+                _positions[i].x = _startPoint.x + _stepLens[i]/_mapMeterPerPixel*cos(_directions[i]);
+                _positions[i].y = _startPoint.y + _stepLens[i]/_mapMeterPerPixel*sin(_directions[i]);
+                
+                newPoint.x += _particleWeight[i]*_positions[i].x;
+                newPoint.y += _particleWeight[i]*_positions[i].y;
+            }
+            
+            [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+            
+            
+        } else {//possible for resampling
+            
+            //determine whether resample needed
+            _particleWeight[0] = _particleWeight[0]/weightBuffer;
+            
+            double pfEfficiency = pow(_particleWeight[0], 2);
+            
+            double cumWeight[particleNum];
+            cumWeight[0] = _particleWeight[0];
+            
+            CGPoint positionBuffer[particleNum];
+            positionBuffer[0] = _positions[0];
+            
+            for (int i=1; i<particleNum; i++) {
+                
+                //update the particle weight
+                _particleWeight[i] = _particleWeight[i]/weightBuffer;
+                
+                //calculate the efficiency
+                pfEfficiency += pow(_particleWeight[i], 2);
+                
+                //calculate the cumulative probability
+                cumWeight[i] = cumWeight[i-1] + _particleWeight[i];
+                
+                //copy the positions for resampling
+                positionBuffer[i] = _positions[i];
+            }
+            
+            pfEfficiency = 1.0/pfEfficiency;
+            
+            if (pfEfficiency < particleNum*resampleRatio) {//resample needed
+                
+                CGPoint newPoint;
+                
+                int indexNum = 0;
+                
+                for (int i=0; i<particleNum; i++) {
+                    
+                    //generate a random number in (0,1);
+                    double randNum = arc4random()/RAND_MAX;
+                    
+                    //find j such that cumWeight[j-1] < randNum < cumWeight[j]
+                    int j = 0;
+                    while (j < particleNum) {
+                        if (randNum < cumWeight[j]) {
+                            indexNum = j;
+                            
+                            break;
+                        }
+                        
+                        j++;
+                    }
+                    
+                    _stepLens[i] = _stepLens[indexNum];
+                    
+                    _positions[i] = positionBuffer[indexNum];
+                    
+                    _particleWeight[i] = 1.0/particleNum;
+                    
+                    
+                    //direction, random, 7 degree (uniform first)
+//                    _directions[i] = directionData + (arc4random()%7)/kRadToDeg;
+                    _directions[i] = directionData;
+                    
+                    _positions[i].x += _stepLens[i]/_mapMeterPerPixel*cos(_directions[i]);
+                    _positions[i].y += _stepLens[i]/_mapMeterPerPixel*sin(_directions[i]);
+                    
+                    newPoint.x += _particleWeight[i]*_positions[i].x;
+                    newPoint.y += _particleWeight[i]*_positions[i].y;
+                
+                }
+                
+                [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+                
+                
+            } else {
+                
+                CGPoint newPoint = CGPointZero;
+                
+                for (int i=0; i<particleNum; i++) {
+                    
+                    //direction, random, 7 degree (uniform first)
+//                    _directions[i] = directionData + (arc4random()%7)/kRadToDeg;
+                    _directions[i] = directionData;
+                    
+                    _positions[i].x += _stepLens[i]/_mapMeterPerPixel*cos(_directions[i]);
+                    _positions[i].y += _stepLens[i]/_mapMeterPerPixel*sin(_directions[i]);
+                    
+                    newPoint.x += _particleWeight[i] * _positions[i].x;
+                    newPoint.y += _particleWeight[i] * _positions[i].y;
+                }
+                
+                [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+                
+            }
+            
+        }
+        
+        
+    } else {// no gps update, dead reckoning continue
+        
+        CGPoint newPoint = CGPointZero;
+        
+        for (int i=0; i<particleNum; i++) {
+            
+            //direction, random, 7 degree (uniform first)
+//            _directions[i] = directionData + (arc4random()%7)/kRadToDeg;
+            _directions[i] = directionData;
+            
+            _positions[i].x += _stepLens[i]/_mapMeterPerPixel*cos(_directions[i]);
+            _positions[i].y += _stepLens[i]/_mapMeterPerPixel*sin(_directions[i]);
+            
+            newPoint.x += _particleWeight[i] * _positions[i].x;
+            newPoint.y += _particleWeight[i] * _positions[i].y;
+        }
+        
+        [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+
+    }
+
 }
 
  -(void)deviceOrientaionDidChange{
