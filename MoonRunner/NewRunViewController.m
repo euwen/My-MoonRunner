@@ -77,7 +77,7 @@ static NSString * const detailSegueName = @"RunDetails";
     _deadReckoning = [[DeadReckoning alloc]init];
     _deadReckoning.delegate = self;
     
-    _deadReckoning.mapMeterPerPixel = 1;
+    _deadReckoning.mapMeterPerPixel = 0.1;
     _deadReckoning.startPoint = CGPointZero;
     
 }
@@ -155,7 +155,7 @@ static NSString * const detailSegueName = @"RunDetails";
     
     _mapView.desiredAccuracy = kCLLocationAccuracyBest;
     
-    _mapView.distanceFilter = 100;
+    _mapView.distanceFilter = 10;
     
 //    [self startLocationUpdate];
     
@@ -177,9 +177,18 @@ static NSString * const detailSegueName = @"RunDetails";
             mapPoint.x = point.x;
             mapPoint.y = point.y;
             
+            //transform from plain coordinate to latitude/longitude
             CLLocationCoordinate2D coords = MACoordinateForMapPoint(mapPoint);
             
-            CLLocation *location = [[CLLocation alloc] initWithLatitude:coords.latitude longitude:coords.longitude];
+            NSDate *_date = [_deadReckoning.timestamps objectAtIndex:i];
+            
+            CLLocation *location = [[CLLocation alloc] initWithCoordinate:coords
+                                                                 altitude:0
+                                                       horizontalAccuracy:0
+                                                         verticalAccuracy:0
+                                                                   course:0
+                                                                    speed:0
+                                                                timestamp:_date];
             
             [positions addObject:location];
             
@@ -263,7 +272,33 @@ static NSString * const detailSegueName = @"RunDetails";
 
 }*/
 
--(void)dataUpdating:(NSMutableArray *)positionData magData:(CMMagnetometerData *)magData motionData:(CMDeviceMotion *)motion{
+
+-(void)locationUpdating:(NSMutableArray *)positionData timestampData:(NSMutableArray *)timestamps{
+    
+    if (positionData.count > 1) {
+        
+        NSInteger index = positionData.count-1;
+        
+        CGPoint point;
+        MAMapPoint mapPoint;
+        
+        CLLocationCoordinate2D coords[2];
+        
+        for (NSInteger i=0; i<2; i++) {
+            point = [[positionData objectAtIndex:index-i] CGPointValue];
+            mapPoint.x = point.x;
+            mapPoint.y = point.y;
+            
+            coords[i] = MACoordinateForMapPoint(mapPoint);
+            
+        }
+        
+        MACoordinateRegion region = MACoordinateRegionMakeWithDistance(coords[0], 500, 500);
+        [_mapView setRegion:region animated:YES];
+        
+        [_mapView addOverlay:[MAPolyline polylineWithCoordinates:coords count:2]];
+        
+    }
 
     //NSLog(@"Position Data: %@", positionData);
 
@@ -273,20 +308,20 @@ static NSString * const detailSegueName = @"RunDetails";
 -(void)mapView:(MAMapView *)mapView didUpdateUserLocation:(MAUserLocation *)userLocation updatingLocation:(BOOL)updatingLocation{
 
     if (updatingLocation) {
-        NSLog(@"Lat: %f, Lng: %f", userLocation.coordinate.latitude, userLocation.coordinate.longitude);
+//        NSLog(@"Lat: %f, Lng: %f", userLocation.coordinate.latitude, userLocation.coordinate.longitude);
         
         //update distance
         if (self.locations.count > 0) {
             self.distance += [userLocation.location distanceFromLocation:self.locations.lastObject];
             
-            CLLocationCoordinate2D coords[2];
-            coords[0] = ((CLLocation *)self.locations.lastObject).coordinate;
-            coords[1] = userLocation.coordinate;
-            
-            MACoordinateRegion region = MACoordinateRegionMakeWithDistance(userLocation.coordinate, 500, 500);
-            [_mapView setRegion:region animated:YES];
-            
-            [_mapView addOverlay:[MAPolyline polylineWithCoordinates:coords count:2]];
+//            CLLocationCoordinate2D coords[2];
+//            coords[0] = ((CLLocation *)self.locations.lastObject).coordinate;
+//            coords[1] = userLocation.coordinate;
+//            
+//            MACoordinateRegion region = MACoordinateRegionMakeWithDistance(userLocation.coordinate, 500, 500);
+//            [_mapView setRegion:region animated:YES];
+//            
+//            [_mapView addOverlay:[MAPolyline polylineWithCoordinates:coords count:2]];
             
         }
         
@@ -300,8 +335,6 @@ static NSString * const detailSegueName = @"RunDetails";
         _point.y = point.y;
         
         _deadReckoning.startPoint = _point;
-        
-//        if (MACircleContainsPoint(<#MAMapPoint point#>, <#MAMapPoint center#>, <#double radius#>)){}
         
     }
 
@@ -331,9 +364,9 @@ static NSString * const detailSegueName = @"RunDetails";
     NSMutableArray *locationArray = [NSMutableArray array];
     
     for (CLLocation *location in self.locations) {
-        Location *locationObject = [NSEntityDescription insertNewObjectForEntityForName:@"Location" inManagedObjectContext:self.managedObjectContext];
+        Location *locationObject = [NSEntityDescription insertNewObjectForEntityForName:@"Location"inManagedObjectContext:self.managedObjectContext];
         
-//        locationObject.timestamp = location.timestamp;
+        locationObject.timestamp = location.timestamp;
         locationObject.latitude = [NSNumber numberWithDouble:location.coordinate.latitude];
         locationObject.longitude = [NSNumber numberWithDouble:location.coordinate.longitude];
         
@@ -348,6 +381,7 @@ static NSString * const detailSegueName = @"RunDetails";
     if (![self.managedObjectContext save:&error]) {
         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
         abort();
+        
     }else{
     
         NSLog(@"Dist: %f, Time: %i", self.distance, self.seconds);

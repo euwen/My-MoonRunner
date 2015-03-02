@@ -74,6 +74,7 @@
 		9E1718A81A7746BA003B2F1E /* SensorLive.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E1718A71A7746BA003B2F1E /* SensorLive.m */; };
 		9E1718AB1A78DB18003B2F1E /* LineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E1718AA1A78DB18003B2F1E /* LineView.m */; };
 		9E1718AE1A7F4368003B2F1E /* DeadReckoning.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E1718AD1A7F4367003B2F1E /* DeadReckoning.m */; };
+		9E1718B41A89EA08003B2F1E /* MadgwickAHRS.c in Sources */ = {isa = PBXBuildFile; fileRef = 9E1718B21A89EA07003B2F1E /* MadgwickAHRS.c */; };
 		C59EEBF55EB53D62F5BB1389 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DABA1A4E7B1C1F8AA249259 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -175,6 +176,8 @@
 		9E1718AA1A78DB18003B2F1E /* LineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LineView.m; sourceTree = "<group>"; };
 		9E1718AC1A7F4367003B2F1E /* DeadReckoning.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeadReckoning.h; sourceTree = "<group>"; };
 		9E1718AD1A7F4367003B2F1E /* DeadReckoning.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DeadReckoning.m; sourceTree = "<group>"; };
+		9E1718B21A89EA07003B2F1E /* MadgwickAHRS.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = MadgwickAHRS.c; path = ../../../BaiduCloud/sensor/madgwick_algorithm_c/MadgwickAHRS/MadgwickAHRS.c; sourceTree = "<group>"; };
+		9E1718B31A89EA07003B2F1E /* MadgwickAHRS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MadgwickAHRS.h; path = ../../../BaiduCloud/sensor/madgwick_algorithm_c/MadgwickAHRS/MadgwickAHRS.h; sourceTree = "<group>"; };
 		9ED8E0AEDBAA7EEFD51349C3 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -246,6 +249,8 @@
 				9E17189E1A70DE48003B2F1E /* MotionViewController.m */,
 				9E1718AC1A7F4367003B2F1E /* DeadReckoning.h */,
 				9E1718AD1A7F4367003B2F1E /* DeadReckoning.m */,
+				9E1718B31A89EA07003B2F1E /* MadgwickAHRS.h */,
+				9E1718B21A89EA07003B2F1E /* MadgwickAHRS.c */,
 				9E1718A91A78DB18003B2F1E /* LineView.h */,
 				9E1718AA1A78DB18003B2F1E /* LineView.m */,
 				9E1718A61A7746BA003B2F1E /* SensorLive.h */,
@@ -547,6 +552,7 @@
 				9E17182B1A6906BE003B2F1E /* Location.m in Sources */,
 				9E17189F1A70DE48003B2F1E /* MotionViewController.m in Sources */,
 				9E17189A1A6FA469003B2F1E /* RunCell.m in Sources */,
+				9E1718B41A89EA08003B2F1E /* MadgwickAHRS.c in Sources */,
 				9E1718911A6CF2E2003B2F1E /* MathController.m in Sources */,
 				9E1718251A690480003B2F1E /* DataModel.xcdatamodeld in Sources */,
 				9E1718281A6906BD003B2F1E /* Run.m in Sources */,

@@ -11,6 +11,8 @@
 #import "LineView.h"
 #import "DeadReckoning.h"
 
+#include "MadgwickAHRS.h"
+
 #define kRadToDeg   57.2957795
 
 #define indoorMapMeterPerPixel 0.0814 //unit: meters/pixel
@@ -55,6 +57,7 @@
                                                             repeats:YES];
         
     }
+
     return _refreshMoniterView;
 }
 
@@ -119,6 +122,8 @@
     [super viewDidDisappear:animated];
     [_translationPlotTimer invalidate];
     [_refreshPlotTimer invalidate];
+    
+    [_deadReckoning stopSensorReading];
 
 }
 
@@ -137,7 +142,7 @@
 
 }
 
--(void)dataUpdating:(NSMutableArray *)positionData magData:(CMMagnetometerData *)magData motionData:(CMDeviceMotion *)motion{
+-(void)dataUpdating:(NSMutableArray *)positionData timestampData:(NSMutableArray *)timestamps magData:(CMMagnetometerData *)magData motionData:(CMDeviceMotion *)motion{
 
     //motion sensor data
     
@@ -152,6 +157,30 @@
     
     self.stepLabel.text = [NSString stringWithFormat:@" Step Count: %lu", (unsigned long)positionData.count];
     
+//    //Quaternion to Eular angles
+//    double wQuat = motion.attitude.quaternion.w;
+//    double xQuat = motion.attitude.quaternion.x;
+//    double yQuat = motion.attitude.quaternion.y;
+//    double zQuat = motion.attitude.quaternion.z;
+//    
+//    double pitch = atan2(2*(wQuat*xQuat + yQuat*zQuat), 1-2*(xQuat*xQuat + yQuat*yQuat));
+//    double roll = asin(2*(wQuat*yQuat - zQuat*xQuat));
+//    double yaw = atan2(2*(wQuat*zQuat + xQuat*yQuat), 1-2*(yQuat*yQuat + zQuat*zQuat));
+//    
+//    self.gyroLabel.text = [NSString stringWithFormat:@" Roll: %.2f\n Pitch: %.2f\n Yaw: %.2f", roll*kRadToDeg, pitch*kRadToDeg, yaw*kRadToDeg];
+    
+    //rotaion matrix
+    CMAttitude *deviceAttitude = motion.attitude;
+    
+    //    [deviceAttitude multiplyByInverseOfAttitude:referenceAttitude];
+    
+    CMRotationMatrix rotation = deviceAttitude.rotationMatrix;
+    
+    double gravityX = rotation.m11*motion.gravity.x + rotation.m12*motion.gravity.y + rotation.m13*motion.gravity.z;
+    double gravityY = rotation.m21*motion.gravity.x + rotation.m22*motion.gravity.y + rotation.m23*motion.gravity.z;
+    double gravityZ = rotation.m31*motion.gravity.x + rotation.m32*motion.gravity.y + rotation.m33*motion.gravity.z;
+    
+    self.gyroLabel.text = [NSString stringWithFormat:@" Gyroscope.x: %.2f\n Gyroscope.y: %.2f\n Gyroscope.z: %.2f", gravityX, gravityY, gravityZ];
     
     //magnetometer data
     
@@ -160,6 +189,8 @@
     _lineView.positionData = positionData;
     
     [_lineView setNeedsDisplay];
+    
+    MadgwickAHRSupdateIMU(motion.rotationRate.x, motion.rotationRate.y, motion.rotationRate.z, motion.userAcceleration.x, motion.userAcceleration.y, motion.userAcceleration.z);
     
 }
 

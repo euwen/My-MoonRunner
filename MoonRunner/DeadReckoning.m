@@ -16,7 +16,7 @@
 
 #define alphaTracker 0.23 //smoothing factor, cutoff frequency 3Hz
 
-#define stepDetectThreshold 0.08 //step detection threshold
+#define stepDetectThreshold 0.05 //step detection threshold
 
 #define macroAxis  6378137 //the radius of equator
 
@@ -24,21 +24,22 @@
 
 #define particleNum 100 //number of particles in particle filter
 
-#define distanceThreshold 10 //unit: meters
+#define distanceThreshold 20 //unit: meters
 
 #define resampleRatio 0.8 //resample ratio for particle filter
 
 
 @implementation DeadReckoning{
-
-    double _lastDirection;
-    
+   
     int _lastStep;
     
     int _currentStep;
     
     double _lastGravity;
     
+    double _lastDirection;
+    
+    // for particle filter
     CGPoint _startPointBuffer;
     
     double _stepLens[particleNum];
@@ -48,6 +49,8 @@
     CGPoint _positions[particleNum];
     
     double _particleWeight[particleNum];
+    
+    CMAttitude *referenceAttitude;
     
 }
 
@@ -59,17 +62,18 @@
     _lastGravity = 0;
     _startPointBuffer = CGPointZero;
     
+    _positionData = [[NSMutableArray alloc] init];
+    _timestamps = [[NSMutableArray alloc] init];
+    
     for (int i=0; i<particleNum; i++) {
         
-        _stepLens[i] = stepLen + (arc4random()%100)/10;
+        _stepLens[i] = stepLen + 2*arc4random()/RAND_MAX-1;
         
         _particleWeight[i] = 1.0/particleNum;
         
+        _positions[i] = _startPoint;
+        
     }
-    
-    _positionData = [[NSMutableArray alloc] init];
-    
-    _motionManager = [[CMMotionManager alloc]init];
     
     //heading
     _locationManger = [[CLLocationManager alloc]init];
@@ -82,6 +86,9 @@
     }
     
     //device motion
+    _motionManager = [[CMMotionManager alloc]init];
+    
+    //mag data
     _motionManager.magnetometerUpdateInterval = 0.1;
     [_motionManager startMagnetometerUpdatesToQueue:[NSOperationQueue currentQueue] withHandler:^(CMMagnetometerData *magData, NSError *error) {
         if (error) {
@@ -92,9 +99,16 @@
         }
     }];
     
+    //motion data
+    CMDeviceMotion *deviceMotion = _motionManager.deviceMotion;
+    referenceAttitude = deviceMotion.attitude;
     
     _motionManager.deviceMotionUpdateInterval = 0.1;
-    [_motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue] withHandler:^(CMDeviceMotion *motion, NSError *error){
+    
+    //with attitude reference frame
+    [_motionManager startDeviceMotionUpdatesUsingReferenceFrame:CMAttitudeReferenceFrameXArbitraryCorrectedZVertical
+                                                        toQueue:[NSOperationQueue currentQueue]
+                                                    withHandler:^(CMDeviceMotion *motion, NSError *error) {
         if (error ) {
             NSLog(@"Motion Error: %@", error);
             
@@ -103,19 +117,30 @@
             [self outputMotionData:motion];
             
         }
-        
     }];
     
-    /*
-     _device = [UIDevice currentDevice];
-     [_device beginGeneratingDeviceOrientationNotifications];
-     
-     [[NSNotificationCenter defaultCenter] addObserver:self
-     selector:@selector(deviceOrientaionDidChange)
-     name:UIDeviceOrientationDidChangeNotification
-     object:nil];*/
+//    //without attitude reference frame
+//    [_motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue] withHandler:^(CMDeviceMotion *motion, NSError *error){
+//        if (error ) {
+//            NSLog(@"Motion Error: %@", error);
+//            
+//        }else{
+//            
+//            [self outputMotionData:motion];
+//            
+//        }
+//        
+//    }];
     
-    //_pedometer = [[CMPedometer alloc]init];
+    _pedometer = [[CMPedometer alloc]init];
+    [_pedometer startPedometerUpdatesFromDate:[NSDate date]
+                                  withHandler:^(CMPedometerData *pedometerData, NSError *error) {
+                                      if (error) {
+                                          NSLog(@"Pedometer Error: %@", error);
+                                      } else {
+                                          [self outputPedoData:pedometerData];
+                                      }
+                                  }];
 
 }
 
@@ -139,12 +164,55 @@
     CLLocationDirection theHeading = ((newHeading.trueHeading > 0) ?
                                       newHeading.trueHeading:newHeading.magneticHeading);
     
+//    UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
+//    switch (orientation) {
+//        case UIDeviceOrientationPortrait:
+//            break;
+//            
+//        case UIDeviceOrientationPortraitUpsideDown:
+//            theHeading += 180.0;
+//            break;
+//            
+//        case UIDeviceOrientationLandscapeLeft:
+//            theHeading += 90.0;
+//            break;
+//            
+//        case UIDeviceOrientationLandscapeRight:
+//            theHeading -= 90.0;
+//            break;
+//            
+//        default:
+//            break;
+//    }
+    
+//    float deviceAngle = atan2(_motionData.gravity.y, _motionData.gravity.x);
+//    
+//    if (deviceAngle >= -2.25 && deviceAngle <= -0.25) {
+//        NSLog(@"Portrait");
+//        
+//    } else if(deviceAngle >= -1.75 && deviceAngle <= 0.75) {
+//        theHeading -= 90.0;
+//        NSLog(@"Landscape Right");
+//        
+//    } else if(deviceAngle >= 0.75 && deviceAngle <= 2.25){
+//        theHeading += 180.0;
+//        NSLog(@"Portrait Upside Down");
+//    
+//    }else if (deviceAngle <= -2.25 || deviceAngle >= 2.25){
+//        theHeading += 90.0;
+//        NSLog(@"Landscape Left");
+//    
+//    }
+//    
+//    while (theHeading > 360.0) {
+//        theHeading -= 360;
+//    }
     
     //for indoor map
-//    _currentDirection = (theHeading-90)/kRadToDeg;
+    _currentDirection = (theHeading - 90 - _mapNorthOffset)/kRadToDeg;
     
     //for outdoor map
-    _currentDirection = (theHeading-90)/kRadToDeg;
+//    _currentDirection = (theHeading-90)/kRadToDeg;
     
     //avoid the direction jump from 0 to 2pi or 2pi to 0
     if (_lastDirection != 0 && fabs(_currentDirection - _lastDirection) < M_PI) {
@@ -161,7 +229,10 @@
     //step count
     [self stepCount:motion.userAcceleration gravityInfo:motion.gravity directionInfo:_currentDirection];
     
-    [self.delegate dataUpdating:_positionData magData:_magData motionData:_motionData];
+    //optional, check first
+    if ([self.delegate respondsToSelector:@selector(dataUpdating:timestampData:magData:motionData:)]) {
+        [self.delegate dataUpdating:_positionData timestampData:_timestamps magData:_magData motionData:_motionData];
+    }
     
 }
 
@@ -174,6 +245,11 @@
     _magData = magData;
 }
 
+-(void)outputPedoData:(CMPedometerData *)pedometerData{
+    _stepCount = [pedometerData.numberOfSteps intValue];
+
+}
+
 
 -(int)stepCount:(CMAcceleration)userAccData
     gravityInfo:(CMAcceleration)gravityData
@@ -184,9 +260,9 @@
     //use the accelaration only in the gravity direction
     double _gravity = (gravityData.x*userAccData.x + gravityData.y*userAccData.y + gravityData.z*userAccData.z);
     
-    if (_lastGravity != 0) {
-        _gravity = [self smoothing:_gravity lastData:_lastGravity];
-    }
+//    if (_lastGravity != 0) {
+//        _gravity = [self smoothing:_gravity lastData:_lastGravity];
+//    }
     _lastGravity = _gravity;
     
     if (_gravity >= stepDetectThreshold) {
@@ -198,22 +274,36 @@
     }
     
     if ((_currentStep - _lastStep) == 1) {
-        _stepCount++;
+        
+        
+        //for debug
+        //_stepCount++;
         
         //estimate the next step
         if (!CGPointEqualToPoint(_startPoint, CGPointZero)) {
             
-            if ( CGPointEqualToPoint(_startPoint, _startPointBuffer)) {//no gps update
+            if ( CGPointEqualToPoint(_startPoint, _startPointBuffer)) {//no gps/BLE update
                 
                 [self locationParticleFilter:NO directionData:directionData];
                 
-            }else{//with gps update
+            }else{//with gps/BLE update
                 
                 [self locationParticleFilter:YES directionData:directionData];
                 
                 _startPointBuffer = _startPoint;
                 
             }
+            
+            //optional, check first
+            if ([self.delegate respondsToSelector:@selector(locationUpdating:timestampData:)]) {
+                [self.delegate locationUpdating:_positionData timestampData:_timestamps];
+            }
+            
+            //optional, check first
+            if ([self.delegate respondsToSelector:@selector(positionUpdating:)]) {
+                [self.delegate positionUpdating:_newPosition];
+            }
+            
         }
         
     }
@@ -235,7 +325,7 @@
 
 -(void)locationParticleFilter:(BOOL)locationUpdated directionData:(double)directionData{
 
-    if (locationUpdated) {
+    if (locationUpdated) {// with gps/BLE location update
         
         double weightBuffer = 0;
         for (int i=0; i<particleNum; i++) {
@@ -257,7 +347,7 @@
             for (int i=0; i<particleNum; i++) {
                 
                 //step length, random, 10 meters
-                _stepLens[i] = stepLen + (arc4random()%100)/10;
+                _stepLens[i] = stepLen + 2*arc4random()/RAND_MAX-1;
                 
                 _particleWeight[i] = 1.0/particleNum;
                 
@@ -273,6 +363,7 @@
             }
             
             [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+            [_timestamps addObject:[NSDate date]];
             
             
         } else {//possible for resampling
@@ -348,6 +439,7 @@
                 }
                 
                 [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+                [_timestamps addObject:[NSDate date]];
                 
                 
             } else {
@@ -368,6 +460,7 @@
                 }
                 
                 [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+                [_timestamps addObject:[NSDate date]];
                 
             }
             
@@ -392,49 +485,35 @@
         }
         
         [_positionData addObject:[NSValue valueWithCGPoint:newPoint]];
+        [_timestamps addObject:[NSDate date]];
 
     }
 
 }
 
- -(void)deviceOrientaionDidChange{
- 
-     _device = [UIDevice currentDevice];
- 
-     switch (_device.orientation) {
-        case UIDeviceOrientationUnknown:
-            NSLog(@"Unknown!");
-             break;
- 
-        case UIDeviceOrientationFaceUp:
-             NSLog(@"Face up!");
-             break;
- 
-         case UIDeviceOrientationFaceDown:
-             NSLog(@"Face down!");
-             break;
- 
-         case UIDeviceOrientationLandscapeLeft:
-             NSLog(@"Home button right!");
-             break;
- 
-         case UIDeviceOrientationLandscapeRight:
-             NSLog(@"Home button left!");
-             break;
- 
-         case UIDeviceOrientationPortrait:
-             NSLog(@"Home button bottom!");
-             break;
- 
-         case UIDeviceOrientationPortraitUpsideDown:
-             NSLog(@"Home button top!");
-             break;
- 
-         default:
-             NSLog(@"Cannot distinguish!");
-             break;
-     }
- 
- }
+-(double)gaussianRandomNumber:(double)mean
+                 stdVariance:(double)var{
+
+    double randNum = 0.0;
+    
+    //method 1: use the central limit theorem
+    double sum = 0.0;
+
+    for (int i=0; i<12; i++) {
+        sum = sum + arc4random()/RAND_MAX;
+    }
+    
+    randNum = (sum - 6.0)*var + mean;
+    
+//    //method 2: use the reverse function
+//    
+//    double randNum1 = arc4random()/RAND_MAX;
+//    double randNum2 = arc4random()/RAND_MAX;
+//    
+//    randNum = sqrt(-2.0*log(randNum1))*cos(2.0*M_PI*randNum2)*var + mean;
+    
+    return randNum;
+
+}
 
 @end

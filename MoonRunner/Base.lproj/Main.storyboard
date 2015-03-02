@@ -211,7 +211,7 @@
                         <color key="backgroundColor" cocoaTouchSystemColor="darkTextColor"/>
                     </view>
                     <navigationItem key="navigationItem" id="vMU-K8-u4B">
-                        <barButtonItem key="rightBarButtonItem" style="plain" id="doa-lK-LVt">
+                        <barButtonItem key="rightBarButtonItem" id="doa-lK-LVt">
                             <switch key="customView" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="8wZ-Qw-a4d">
                                 <rect key="frame" x="255" y="497" width="51" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -345,6 +345,6 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="w1a-WC-qOv"/>
+        <segue reference="jfW-J3-SaP"/>
     </inferredMetricsTieBreakers>
 </document>

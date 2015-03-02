@@ -13,10 +13,19 @@
 
 @class DeadReckoning;
 @protocol DeadReckoningDelegate <NSObject>
-@required
+
+@optional
 -(void)dataUpdating:(NSMutableArray *)positionData
+      timestampData:(NSMutableArray *)timestamp
             magData:(CMMagnetometerData*)magData
          motionData:(CMDeviceMotion*)motion;
+
+@optional
+-(void)locationUpdating:(NSMutableArray *)positionData
+          timestampData:(NSMutableArray *)timestamps;
+
+@optional
+-(void)positionUpdating:(CGPoint )newPosition;
 
 @end
 
@@ -26,9 +35,12 @@
 @property(weak,nonatomic) id <DeadReckoningDelegate> delegate;
 
 @property(nonatomic, strong) CMMotionManager *motionManager;
+
 @property(nonatomic, strong) CLLocationManager *locationManger;
 
 @property(nonatomic, strong) NSMutableArray *positionData;
+
+@property(nonatomic, strong) NSMutableArray *timestamps;
 
 @property(nonatomic, strong) CMPedometer *pedometer;
 
@@ -49,6 +61,10 @@
 @property(nonatomic) NSNumber *pedometerSteps;
 
 @property(nonatomic) CGPoint startPoint;
+
+@property(nonatomic) double mapNorthOffset;
+
+@property(nonatomic) CGPoint newPosition;
 
 -(void)startSensorReading;
 
