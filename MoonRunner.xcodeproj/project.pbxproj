@@ -75,6 +75,7 @@
 		9E1718AB1A78DB18003B2F1E /* LineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E1718AA1A78DB18003B2F1E /* LineView.m */; };
 		9E1718AE1A7F4368003B2F1E /* DeadReckoning.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E1718AD1A7F4367003B2F1E /* DeadReckoning.m */; };
 		9E1718B41A89EA08003B2F1E /* MadgwickAHRS.c in Sources */ = {isa = PBXBuildFile; fileRef = 9E1718B21A89EA07003B2F1E /* MadgwickAHRS.c */; };
+		9EBF399C1AB01E7300FB7C12 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EBF399B1AB01E7300FB7C12 /* GLKit.framework */; };
 		C59EEBF55EB53D62F5BB1389 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DABA1A4E7B1C1F8AA249259 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -178,6 +179,7 @@
 		9E1718AD1A7F4367003B2F1E /* DeadReckoning.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DeadReckoning.m; sourceTree = "<group>"; };
 		9E1718B21A89EA07003B2F1E /* MadgwickAHRS.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = MadgwickAHRS.c; path = ../../../BaiduCloud/sensor/madgwick_algorithm_c/MadgwickAHRS/MadgwickAHRS.c; sourceTree = "<group>"; };
 		9E1718B31A89EA07003B2F1E /* MadgwickAHRS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MadgwickAHRS.h; path = ../../../BaiduCloud/sensor/madgwick_algorithm_c/MadgwickAHRS/MadgwickAHRS.h; sourceTree = "<group>"; };
+		9EBF399B1AB01E7300FB7C12 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		9ED8E0AEDBAA7EEFD51349C3 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -186,6 +188,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9EBF399C1AB01E7300FB7C12 /* GLKit.framework in Frameworks */,
 				9E17189C1A70DDAD003B2F1E /* CoreMotion.framework in Frameworks */,
 				9E1718311A6907BC003B2F1E /* CoreData.framework in Frameworks */,
 				9E17182F1A69079E003B2F1E /* CoreGraphics.framework in Frameworks */,
@@ -347,6 +350,7 @@
 		B6506A8DFDDA2C03D7D66D84 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9EBF399B1AB01E7300FB7C12 /* GLKit.framework */,
 				9E17189B1A70DDAC003B2F1E /* CoreMotion.framework */,
 				9E1718301A6907BC003B2F1E /* CoreData.framework */,
 				9E17182E1A69079E003B2F1E /* CoreGraphics.framework */,

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="13E28" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="rS3-R9-Ivy">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6751" systemVersion="13E28" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="rS3-R9-Ivy">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6736"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Master-->
@@ -42,8 +43,11 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="oyg-9B-Rzn">
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="oyg-9B-Rzn">
                                 <rect key="frame" x="0.0" y="328" width="320" height="80"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="320" id="rhT-eQ-VEs"/>
+                                </constraints>
                                 <fontDescription key="fontDescription" name="Optima-Bold" family="Optima" pointSize="27"/>
                                 <state key="normal" title="New Run" backgroundImage="green-btn.png">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -53,8 +57,11 @@
                                     <segue destination="SiU-s4-9iJ" kind="push" id="Mgs-6z-zqU"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EbC-zV-JL6">
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EbC-zV-JL6">
                                 <rect key="frame" x="0.0" y="408" width="320" height="80"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="320" id="c9s-9I-xgz"/>
+                                </constraints>
                                 <fontDescription key="fontDescription" name="Optima-Bold" family="Optima" pointSize="27"/>
                                 <state key="normal" title="Past Runs" backgroundImage="blue-btn.png">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -64,8 +71,11 @@
                                     <segue destination="cRu-Na-MoQ" kind="push" id="mBU-Wj-ixJ"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1yd-nh-Azc">
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1yd-nh-Azc">
                                 <rect key="frame" x="0.0" y="488" width="320" height="80"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="320" id="Ufd-pF-0GF"/>
+                                </constraints>
                                 <fontDescription key="fontDescription" name="Optima-Bold" family="Optima" pointSize="27"/>
                                 <state key="normal" title="DR Run" backgroundImage="blue-btn.png">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -75,11 +85,25 @@
                                     <segue destination="aCU-ut-7Iz" kind="push" id="g6C-sM-4vG"/>
                                 </connections>
                             </button>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="earth.jpg" translatesAutoresizingMaskIntoConstraints="NO" id="2y9-lO-QyI">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" image="earth.jpg" translatesAutoresizingMaskIntoConstraints="NO" id="2y9-lO-QyI">
                                 <rect key="frame" x="28" y="64" width="264" height="264"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="264" id="H9N-wI-Xty"/>
+                                    <constraint firstAttribute="width" constant="264" id="jCw-yH-WV9"/>
+                                </constraints>
                             </imageView>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="2y9-lO-QyI" firstAttribute="leading" secondItem="k4X-5z-Vxm" secondAttribute="leadingMargin" constant="12" id="3Y3-Ku-Yof"/>
+                            <constraint firstItem="EbC-zV-JL6" firstAttribute="leading" secondItem="k4X-5z-Vxm" secondAttribute="leadingMargin" id="5mj-QF-hQD"/>
+                            <constraint firstItem="1yd-nh-Azc" firstAttribute="leading" secondItem="k4X-5z-Vxm" secondAttribute="leadingMargin" id="JzU-jc-M67"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="oyg-9B-Rzn" secondAttribute="trailing" constant="-16" id="KIw-GS-uQg"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="1yd-nh-Azc" secondAttribute="trailing" constant="-16" id="Oms-D5-Hnm"/>
+                            <constraint firstItem="oyg-9B-Rzn" firstAttribute="leading" secondItem="k4X-5z-Vxm" secondAttribute="leadingMargin" id="RUG-gn-nGX"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="2y9-lO-QyI" secondAttribute="trailing" constant="12" id="mdb-Xo-h0S"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="EbC-zV-JL6" secondAttribute="trailing" constant="-16" id="qHM-h8-yOy"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="Xbn-De-E9y" colorLabel="IBBuiltInLabel-Gray"/>
                 </viewController>
@@ -123,8 +147,11 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tVf-a7-zC3">
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tVf-a7-zC3">
                                 <rect key="frame" x="76" y="362" width="169" height="60"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="169" id="Jgf-hL-3gi"/>
+                                </constraints>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                                 <state key="normal" title="Start" backgroundImage="green-btn.png">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -147,6 +174,10 @@
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="tVf-a7-zC3" firstAttribute="leading" secondItem="cBW-xF-znz" secondAttribute="leadingMargin" constant="60" id="12N-3I-11X"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="tVf-a7-zC3" secondAttribute="trailing" constant="60" id="FO5-Et-cdb"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="ja4-dG-MeX">
                         <barButtonItem key="backBarButtonItem" title="Home" id="sTt-Pm-AMV"/>
@@ -345,6 +376,6 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="jfW-J3-SaP"/>
+        <segue reference="w1a-WC-qOv"/>
     </inferredMetricsTieBreakers>
 </document>

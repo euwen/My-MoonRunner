@@ -12,6 +12,10 @@
 	<dict>
 		<key>52961B5BEFEFEFCB287A54AF2C895E6125CCDE09</key>
 		<string>https://github.com/euwen/My-MoonRunner.git</string>
+		<key>980FE215298CEDEB5511A046A09850E3A0182706</key>
+		<string>https://github.com/euwen/HiBeacons.git</string>
+		<key>C10EEF5A607A65087C77DCC23E0CC867528F1BC0</key>
+		<string>https://github.com/ChiefPilot/F3PlotStrip.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>MoonRunner.xcworkspace</string>
@@ -19,6 +23,10 @@
 	<dict>
 		<key>52961B5BEFEFEFCB287A54AF2C895E6125CCDE09</key>
 		<string>..</string>
+		<key>980FE215298CEDEB5511A046A09850E3A0182706</key>
+		<string>../../github</string>
+		<key>C10EEF5A607A65087C77DCC23E0CC867528F1BC0</key>
+		<string>../../github/F3PlotStrip</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/euwen/My-MoonRunner.git</string>
@@ -28,6 +36,22 @@
 	<string>52961B5BEFEFEFCB287A54AF2C895E6125CCDE09</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>C10EEF5A607A65087C77DCC23E0CC867528F1BC0</string>
+			<key>IDESourceControlWCCName</key>
+			<string>F3PlotStrip</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>980FE215298CEDEB5511A046A09850E3A0182706</string>
+			<key>IDESourceControlWCCName</key>
+			<string>github</string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>

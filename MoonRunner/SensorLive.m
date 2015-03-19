@@ -8,7 +8,7 @@
 
 #import "SensorLive.h"
 
-static const NSInteger kMaxContainerCapacity = 30;
+static const NSInteger kMaxContainerCapacity = 300;
 
 @interface PointContainer ()
 @property (nonatomic , assign) NSInteger numberOfRefreshElements;

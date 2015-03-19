@@ -10,6 +10,8 @@
 #import "SensorLive.h"
 #import "LineView.h"
 #import "DeadReckoning.h"
+#import <GLKit/GLKMatrix3.h>
+
 
 #include "MadgwickAHRS.h"
 
@@ -19,7 +21,6 @@
 
 @interface MotionViewController ()<DeadReckoningDelegate>
 
-@property (nonatomic , strong) SensorLive *refreshMoniterView;
 @property (nonatomic , strong) SensorLive *translationMoniterView;
 
 @end
@@ -28,7 +29,6 @@
     
     NSMutableArray *dataSource;
     
-    NSTimer *_refreshPlotTimer;
     NSTimer *_translationPlotTimer;
     
     CGPoint _startPoint;
@@ -44,28 +44,14 @@
 }
 
 //for curve view
-- (SensorLive *)refreshMoniterView
-{
-    if (!_refreshMoniterView) {
-        CGFloat xOffset = 10;
-        _refreshMoniterView = [[SensorLive alloc] initWithFrame:CGRectMake(xOffset, 20, CGRectGetWidth(self.view.frame) - 2 * xOffset, 200)];
-        _refreshMoniterView.backgroundColor = [UIColor blackColor];
-       _refreshPlotTimer =  [NSTimer scheduledTimerWithTimeInterval:0.1
-                                                             target:self
-                                                           selector:@selector(timerRefreshPlot)
-                                                           userInfo:nil
-                                                            repeats:YES];
-        
-    }
-
-    return _refreshMoniterView;
-}
 
 - (SensorLive *)translationMoniterView
 {
     if (!_translationMoniterView) {
-        CGFloat xOffset = 10;
-        _translationMoniterView = [[SensorLive alloc] initWithFrame:CGRectMake(xOffset, CGRectGetMaxY(self.refreshMoniterView.frame) + 10, CGRectGetWidth(self.view.frame) - 2 * xOffset, 200)];
+        
+        CGFloat xOffset = 0;
+        _translationMoniterView = [[SensorLive alloc] initWithFrame:CGRectMake(xOffset, 64, CGRectGetWidth(self.view.frame) - 2 * xOffset, 200)];
+        
         _translationMoniterView.backgroundColor = [UIColor blackColor];
         _translationPlotTimer =  [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(timerTranslationPlot) userInfo:nil repeats:YES];
     }
@@ -96,7 +82,6 @@
     
     [_floorMapView addSubview:_lineView];
     
-    
     self.sensorSwitch.backgroundColor = [UIColor blackColor];
     
     [self.sensorSwitch setOn:NO animated:YES];
@@ -104,9 +89,7 @@
     [self.sensorSwitch addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
     
     self.title = @"Sensor Data";
-    
-    //self.view.backgroundColor = [UIColor lightGrayColor];
-    
+ 
     dataSource = [[NSMutableArray alloc] init];
     
     //initialize the delegate
@@ -116,12 +99,14 @@
     _deadReckoning.mapMeterPerPixel = indoorMapMeterPerPixel;
     _deadReckoning.startPoint = _startPoint;
     
+    [dataSource addObject:[NSNumber numberWithDouble:1.0]];
+    
+    
 }
 
 -(void)viewDidDisappear:(BOOL)animated{
     [super viewDidDisappear:animated];
     [_translationPlotTimer invalidate];
-    [_refreshPlotTimer invalidate];
     
     [_deadReckoning stopSensorReading];
 
@@ -132,7 +117,7 @@
     if (controller == self.sensorSwitch) {
         if (controller.on) {
             [_deadReckoning startSensorReading];
-            
+//            [self.view addSubview:self.translationMoniterView];
        
         }else{
             [_deadReckoning stopSensorReading];
@@ -190,7 +175,12 @@
     
     [_lineView setNeedsDisplay];
     
-    MadgwickAHRSupdateIMU(motion.rotationRate.x, motion.rotationRate.y, motion.rotationRate.z, motion.userAcceleration.x, motion.userAcceleration.y, motion.userAcceleration.z);
+    if ([dataSource count] > 30){
+        [dataSource removeObject:0];
+    }
+    [dataSource addObject:[NSNumber numberWithDouble:gravityX]];
+    
+    //MadgwickAHRSupdateIMU(motion.rotationRate.x, motion.rotationRate.y, motion.rotationRate.z, motion.userAcceleration.x, motion.userAcceleration.y, motion.userAcceleration.z);
     
 }
 
@@ -201,14 +191,6 @@
 
 
 #pragma mark - creat data source
-
-//刷新方式绘制
-- (void)timerRefreshPlot
-{
-    [[PointContainer sharedContainer] addPointAsRefreshChangeform:[self bubbleRefreshPoint]];
-    
-    [self.refreshMoniterView fireDrawingWithPoints:[PointContainer sharedContainer].refreshPointContainer pointsCount:[PointContainer sharedContainer].numberOfRefreshElements];
-}
 
 //平移方式绘制
 - (void)timerTranslationPlot
@@ -221,23 +203,6 @@
 
 #pragma mark - DataSource
 
-- (CGPoint)bubbleRefreshPoint
-{
-    static NSInteger dataSourceCounterIndex = -1;
-    dataSourceCounterIndex ++;
-    dataSourceCounterIndex %= [dataSource count];
-    
-    
-    NSInteger pixelPerPoint = 1;
-    static NSInteger xCoordinateInMoniter = 0;
-    
-    CGPoint targetPointToAdd = (CGPoint){xCoordinateInMoniter,[dataSource[dataSourceCounterIndex] integerValue] *1000};
-    xCoordinateInMoniter += pixelPerPoint;
-    xCoordinateInMoniter %= (int)(CGRectGetWidth(self.translationMoniterView.frame));
-    
-    //    NSLog(@"吐出来的点:%@",NSStringFromCGPoint(targetPointToAdd));
-    return targetPointToAdd;
-}
 
 - (CGPoint)bubbleTranslationPoint
 {
@@ -249,7 +214,7 @@
     NSInteger pixelPerPoint = 1;
     static NSInteger xCoordinateInMoniter = 0;
     
-    CGPoint targetPointToAdd = (CGPoint){xCoordinateInMoniter,[dataSource[dataSourceCounterIndex] integerValue] *1000};
+    CGPoint targetPointToAdd = (CGPoint){xCoordinateInMoniter,[dataSource[dataSourceCounterIndex] integerValue] *10};
     xCoordinateInMoniter += pixelPerPoint;
     xCoordinateInMoniter %= (int)(CGRectGetWidth(self.translationMoniterView.frame));
     
